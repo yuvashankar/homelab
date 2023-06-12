@@ -1,1 +1,26 @@
-
+{
+  "name": "homelab",
+  "description": "Development environment for the yuvashankar.net network",
+  "image": "mcr.microsoft.com/devcontainers/base:1-jammy",
+  "features": {
+    "ghcr.io/devcontainers-contrib/features/ansible:2": {
+      "version": "latest"
+    },
+    "ghcr.io/devcontainers/features/terraform:1": {
+      "version": "latest"
+    },
+    "ghcr.io/devcontainers-contrib/features/black:2": {
+      "version": "latest"
+    }, 
+    "ghcr.io/devcontainers-contrib/features/yamllint:2": {
+      "version": "latest"
+    }
+  }, 
+    "extensions": [
+      "redhat.vscode-yaml", 
+      "redhat.ansible", 
+      "HashiCorp.terraform", 
+      "ms-python.python",
+      "yzhang.markdown-all-in-one"
+    ]
+}
