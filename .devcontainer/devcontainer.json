@@ -16,11 +16,16 @@
       "version": "latest"
     }
   }, 
-    "extensions": [
-      "redhat.vscode-yaml", 
-      "redhat.ansible", 
-      "HashiCorp.terraform", 
-      "ms-python.python",
-      "yzhang.markdown-all-in-one"
-    ]
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "redhat.vscode-yaml", 
+        "redhat.ansible", 
+        "HashiCorp.terraform", 
+        "ms-python.python",
+        "yzhang.markdown-all-in-one",
+        "bierner.markdown-mermaid"
+      ]
+    }
+  }
 }
