@@ -1,3 +1,4 @@
 #!/bin/bash
 sudo apt-get update && sudo apt-get install sshpass
-ansible-galaxy collection install pfsensible.core
+pip3 install -r /workspaces/homelab/requirements.txt
+ansible-galaxy install -r /workspaces/homelab/ansible/requirements.yml
