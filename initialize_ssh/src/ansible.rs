@@ -1,6 +1,5 @@
-use anyhow::bail;
 use core::fmt;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::io::{Error, ErrorKind};
 use std::{
     fs,
@@ -9,72 +8,48 @@ use std::{
 };
 
 #[cfg(not(test))]
-const DEFAULT_SSH_VAR_YAML_FILE: &str = "/workspaces/homelab/ansible/vars/ssh_vars.yaml";
+pub const DEFAULT_SSH_VAR_YAML_FILE: &str = "/workspaces/homelab/ansible/vars/ssh_vars.yaml";
 #[cfg(not(test))]
 const VAULT_PASS_FILENAME: &str = ".vault_pass.txt";
 
 #[cfg(test)]
-const DEFAULT_SSH_VAR_YAML_FILE: &str = "/tmp/temm_ssh_yaml.yaml";
+pub const DEFAULT_SSH_VAR_YAML_FILE: &str = "/tmp/temm_ssh_yaml.yaml";
 #[cfg(test)]
 const VAULT_PASS_FILENAME: &str = "/tmp/vault_pass_file_test/.test_vault_pass.txt";
 
-#[derive(Debug, PartialEq, Serialize)]
-struct VarsFile {
-    ssh_public_key: String,
-    ssh_private_key: String,
+#[derive(Debug, PartialEq, Deserialize, Serialize)]
+pub struct VarsFile {
+    pub ssh_public_key: String,
+    pub ssh_private_key: String,
 }
 
-pub fn get_password(file_path: Option<PathBuf>) -> Result<String, Error> {
-    if let Some(password_file) = file_path {
-        match fs::read_to_string(password_file) {
-            Ok(pass) => {
-                if let Some(password) = pass.lines().next() {
-                    Ok(String::from(password))
-                } else {
-                    Err(Error::new(ErrorKind::Other, "File may be empty"))
-                }
-            }
-            Err(e) => Err(e),
+pub fn get_password(file_path: PathBuf) -> Result<String, Error> {
+    if file_path.exists() {
+        let file_contents = fs::read_to_string(file_path)?;
+        if let Some(file_password) = file_contents.lines().next() {
+            Ok(String::from(file_password))
+        } else {
+            Err(Error::new(
+                ErrorKind::Other,
+                "Password should be in ASCII in a single line",
+            ))
         }
     } else {
-        match rpassword::prompt_password("Enter the ansible vault password you would like to use: ")
-        {
-            Ok(password) => Ok(password),
-            Err(e) => Err(e),
-        }
+        rpassword::prompt_password("Enter the ansible vault password you would like to use: ")
     }
 }
 
-pub fn process_destination_path(dest_path: Option<PathBuf>) -> Result<PathBuf, anyhow::Error> {
-    match dest_path {
-        Some(file_path) => {
-            if file_path.exists() {
-                bail!(
-                    "Destination file: {:?} already exists, please delete prior to running again. ",
-                    file_path
-                )
-            } else {
-                Ok(file_path)
-            }
-        }
-        None => {
-            let default_path = Path::new(DEFAULT_SSH_VAR_YAML_FILE);
-            if default_path.exists() {
-                bail!(
-                    "Destination file {:?} already exists, please delete prior to running again. ",
-                    default_path
-                );
-            } else {
-                Ok(PathBuf::from(default_path))
-            }
-        }
+pub fn generate_default_vault_password_file() -> PathBuf {
+    match home::home_dir() {
+        Some(h_dir) => h_dir.as_path().join(VAULT_PASS_FILENAME),
+        None => PathBuf::from(VAULT_PASS_FILENAME),
     }
 }
 
 pub fn generate_ssh_yaml_file(
     ssh_key_source: &Path,
     dest_path: &Path,
-) -> Result<(), serde_yaml::Error> {
+) -> Result<(), std::io::Error> {
     let private_key =
         fs::read_to_string(ssh_key_source).expect("Error reading ssh key private file");
     let public_key = fs::read_to_string(ssh_key_source.with_extension("pub"))
@@ -83,27 +58,26 @@ pub fn generate_ssh_yaml_file(
     let file_contents = serde_yaml::to_string(&VarsFile {
         ssh_public_key: public_key,
         ssh_private_key: private_key,
+    })
+    .map_err(|e| {
+        std::io::Error::new(
+            std::io::ErrorKind::InvalidInput,
+            format!("Unable to parse the public and private keys into a yaml file: {e:?}"),
+        )
     })?;
-    let _output = fs::write(dest_path, file_contents).expect("Error writing yaml file");
+    fs::write(dest_path, file_contents)?;
     Ok(())
 }
 
 pub fn write_vault_password_file(vault_password: &str) -> Result<PathBuf, std::io::Error> {
-    let save_path = if let Some(home_dir) = home::home_dir() {
-        PathBuf::from(home_dir.as_path().join(VAULT_PASS_FILENAME))
-    } else {
-        PathBuf::from(VAULT_PASS_FILENAME)
-    };
+    let save_path = generate_default_vault_password_file();
 
     if save_path.exists() {
-        return Err(Error::new(
-            ErrorKind::AlreadyExists,
-            "Vault Password file already exists",
-        ));
+        Ok(save_path)
+    } else {
+        fs::write(&save_path, vault_password)?;
+        Ok(save_path)
     }
-
-    fs::write(&save_path, vault_password)?;
-    Ok(save_path)
 }
 
 #[derive(Default, Debug)]
@@ -121,7 +95,7 @@ impl fmt::Display for AnsibleVaultCommand {
 
 pub fn vault_ssh_vars_file(
     ansible_vault_command: AnsibleVaultCommand,
-    ssh_key_path: &Path,
+    var_file_path: &Path,
     vault_pass_file: &Path,
 ) -> Result<(), std::io::Error> {
     let vault_pass_file = PathBuf::from(vault_pass_file);
@@ -132,7 +106,7 @@ pub fn vault_ssh_vars_file(
 
     Command::new("ansible-vault")
         .arg(ansible_command)
-        .arg(ssh_key_path)
+        .arg(var_file_path)
         .args(vault_args)
         .output()?;
 
@@ -143,8 +117,8 @@ pub fn vault_ssh_vars_file(
 mod tests {
     use super::*;
     use serial_test::serial;
-    use std::io::{Result, Write};
-    use tempfile::{tempfile, NamedTempFile};
+    use std::io::Write;
+    use tempfile::{NamedTempFile, TempDir};
 
     #[test]
     fn test_get_password_reads_file() {
@@ -153,7 +127,7 @@ mod tests {
 
         let _write_result = writeln!(some_file, "nonsense");
 
-        let output = get_password(Some(PathBuf::from(some_file.path())));
+        let output = get_password(PathBuf::from(some_file.path()));
 
         assert_eq!(output.unwrap(), String::from("nonsense"));
     }
@@ -162,50 +136,34 @@ mod tests {
     fn test_empty_file_errors_out() {
         let some_file = NamedTempFile::new().expect("Should have been able to create a temp file");
 
-        let output = get_password(Some(PathBuf::from(some_file.path())));
+        let output = get_password(PathBuf::from(some_file.path()));
 
         assert!(output.is_err());
     }
 
     #[test]
-    fn test_process_destination_path_wont_overwrite_files() {
-        let mut some_file =
-            NamedTempFile::new().expect("Should have been able to create a temp file");
-        let _write_result = writeln!(some_file, "nonsense");
+    fn test_generate_ssh_yaml_file_creates_yaml_file() -> Result<(), std::io::Error> {
+        let public_contents = "public_contents";
+        let private_contents = "private_contents";
 
-        let output = process_destination_path(Some(PathBuf::from(some_file.path())));
+        let tmp_dir = TempDir::new()?;
 
-        assert!(output.is_err());
-    }
+        let public_path = tmp_dir.path().join("temp_ssh_key").with_extension("pub");
+        let private_path = tmp_dir.path().join("temp_ssh_key");
 
-    #[test]
-    #[serial]
-    fn test_process_destination_works_with_none() {
-        let output = process_destination_path(None).unwrap();
+        fs::write(&public_path, public_contents)?;
+        fs::write(&private_path, private_contents)?;
 
-        let default_path = Path::new(DEFAULT_SSH_VAR_YAML_FILE);
+        let yaml_dest = NamedTempFile::new()?;
 
-        if default_path.exists() {
-            let _ = fs::remove_file(default_path);
-        }
+        generate_ssh_yaml_file(&private_path.as_path(), yaml_dest.path())?;
 
-        assert_eq!(default_path, output);
-    }
+        let yaml_contents = fs::read_to_string(yaml_dest.path())?;
 
-    #[test]
-    #[serial]
-    fn test_process_dest_wont_overwrite_default_path() {
-        let default_path = Path::new(DEFAULT_SSH_VAR_YAML_FILE);
+        assert!(yaml_contents.contains(public_contents));
+        assert!(yaml_contents.contains(private_contents));
 
-        if !default_path.exists() {
-            let _temp_file_out = fs::write(default_path, String::new())
-                .expect("Cannot write a temproary file in the temp directory");
-        }
-
-        let output = process_destination_path(None);
-
-        let _ = fs::remove_file(default_path).expect("Cannot delete temp file");
-        assert!(output.is_err());
+        Ok(())
     }
 
     #[test]
