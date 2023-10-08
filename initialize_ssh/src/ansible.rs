@@ -23,6 +23,8 @@ pub struct VarsFile {
     pub ssh_private_key: String,
 }
 
+/// Gets the password from a file path. If one doesn't exist,
+/// we prompt the user to enter a password.
 pub fn get_password(file_path: PathBuf) -> Result<String, Error> {
     if file_path.exists() {
         let file_contents = fs::read_to_string(file_path)?;
@@ -46,6 +48,7 @@ pub fn generate_default_vault_password_file() -> PathBuf {
     }
 }
 
+/// Read the private and public keys and store them as a yaml file
 pub fn generate_ssh_yaml_file(
     ssh_key_source: &Path,
     dest_path: &Path,
@@ -69,6 +72,7 @@ pub fn generate_ssh_yaml_file(
     Ok(())
 }
 
+/// Save the vault password file in the default location
 pub fn write_vault_password_file(vault_password: &str) -> Result<PathBuf, std::io::Error> {
     let save_path = generate_default_vault_password_file();
 

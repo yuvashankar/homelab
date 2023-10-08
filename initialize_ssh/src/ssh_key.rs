@@ -17,6 +17,7 @@ pub fn default_ssh_key_file_name() -> PathBuf {
     }
 }
 
+/// Reads the ssh_vars file and stores them in the desired ssh path
 pub fn store_ssh_key(var_file: &Path, ssh_priv_path: &Path) -> Result<(), std::io::Error> {
     if ssh_priv_path.exists() {
         info!(
@@ -35,7 +36,7 @@ pub fn store_ssh_key(var_file: &Path, ssh_priv_path: &Path) -> Result<(), std::i
                 )
             })?;
 
-        let public_key_file_name = ssh_priv_path.clone().with_extension("pub");
+        let public_key_file_name = ssh_priv_path.with_extension("pub");
 
         fs::write(public_key_file_name, ssh_yaml_file_contents.ssh_public_key)?;
         fs::write(ssh_priv_path, ssh_yaml_file_contents.ssh_private_key)?;
@@ -44,6 +45,7 @@ pub fn store_ssh_key(var_file: &Path, ssh_priv_path: &Path) -> Result<(), std::i
     }
 }
 
+/// Runs the ssh-keygen command
 pub fn create_ssh_key(filename: &Path, comment: &str) -> Result<(), anyhow::Error> {
     //Check that the file does not already exist
     if filename.exists() {

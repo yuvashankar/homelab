@@ -1,5 +1,15 @@
 [package]
 name = "initialize_ssh"
+authors = ["Vinay Yuvashankar <vinay.yuvashankar@gmail.com>"]
+description = """
+A CLI helper program that creates an ssh key if not avaliable, 
+and stores them as an ansible-vault file. 
+Store your password in a vault file in $HOME/.vault_pass.txt, 
+and run initialize_ssh to create and vault a file. 
+If a vault file is already present, 
+initialize_ssh wil unvault and store the ssh keys.
+"""
+license = "GPL-3.0-or-later"
 version = "0.1.0"
 edition = "2021"
 

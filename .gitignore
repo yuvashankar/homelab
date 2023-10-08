@@ -161,3 +161,4 @@ cython_debug/
 
 # Ignore Vagrant dev containers
 vagrantboxes/
+ssh_vars.yaml

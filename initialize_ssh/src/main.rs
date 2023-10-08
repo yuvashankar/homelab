@@ -6,6 +6,7 @@ mod ansible;
 mod ssh_key;
 
 #[derive(Debug, Parser)]
+#[command(author, version, about)]
 struct Config {
     /// Any comments that will be added to the ssh key
     #[arg(short, long, default_value_t = String::from("ansible_user"))]
@@ -81,7 +82,7 @@ fn main() -> Result<(), std::process::ExitCode> {
     } else {
         ssh_key::create_ssh_key(&user_input.filename, user_input.comment.as_str()).map_err(
             |e| {
-                error!("Cannot run ssh-keyge command: {:?}", e);
+                error!("Cannot run ssh-keygen command: {:?}", e);
                 std::process::ExitCode::FAILURE
             },
         )?;
