@@ -1,0 +1,33 @@
+---
+name: Ansible CI
+
+on:
+  pull_request:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+defaults:
+  run:
+    working-directory: "ansible"
+
+jobs:
+  lint:
+    name: yamllint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout directory
+        uses: actions/checkout@v4
+
+      - name: Setup Python3
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install yamllint
+        run: "pip3 install yamllint"
+
+      - name: Run yamllit
+        run: "yamllint ."
+
