@@ -1,5 +1,6 @@
 ---
-- hosts: default_pfSense
+- name: "Run A Test Playbook"
+  hosts: default_pfSense
   remote_user: admin
   roles:
     - default_pf_sense
