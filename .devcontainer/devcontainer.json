@@ -8,7 +8,8 @@
     "ghcr.io/devcontainers-contrib/features/ansible:2": {},
     "ghcr.io/devcontainers-contrib/features/black:2": {},
     "ghcr.io/devcontainers-contrib/features/yamllint:2": {},
-    "ghcr.io/devcontainers/features/sshd:1": {}
+    "ghcr.io/devcontainers/features/sshd:1": {},
+    "ghcr.io/devcontainers-contrib/features/poetry:2": {}
   },
   "postCreateCommand": "bash post_create.sh",
   "customizations": {

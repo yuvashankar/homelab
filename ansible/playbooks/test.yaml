@@ -3,4 +3,4 @@
   hosts: default_pfSense
   remote_user: admin
   roles:
-    - default_pf_sense
+    - configure_ssh

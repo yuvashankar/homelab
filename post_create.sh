@@ -1,6 +1,6 @@
 #!/bin/bash
 sudo apt-get update && sudo apt-get install sshpass
-pip3 install -r /workspaces/homelab/requirements.txt
+cd /workspaces/homelab/ && poetry install
 ansible-galaxy install -r /workspaces/homelab/ansible/requirements.yml
 
 # Create and install initialize_ssh

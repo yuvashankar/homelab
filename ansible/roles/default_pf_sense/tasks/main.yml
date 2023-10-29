@@ -1,4 +1,0 @@
----
-- name: Test Playbook
-  ansible.builtin.debug:
-    msg: Hello world

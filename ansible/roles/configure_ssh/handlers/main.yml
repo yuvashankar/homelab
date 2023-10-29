@@ -1,0 +1,8 @@
+---
+- name: Reload SSHd
+  become: true
+  when: not testing
+  service:
+    name: sshd
+    state: reloaded
+  
