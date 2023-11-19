@@ -7,6 +7,11 @@ on:
     branches: [ "main" ]
   workflow_dispatch:
 
+defaults:
+  run:
+    working-directory: "initialize_ssh"
+  
+
 env:
   CARGO_TERM_COLOR: always
 
@@ -16,26 +21,22 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: run cargo check
-      run: |
-        cd initialize_ssh && cargo check --verbose
+      run: cargo check --verbose
   fmt:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - name: Run cargo fmt
-        run: |
-          cd initialize_ssh && cargo fmt --verbose
+        run: cargo fmt --verbose
   clippy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - name: run cargo clippy
-        run: |
-          cd initialize_ssh && cargo clippy --verbose
+        run: cargo clippy --verbose
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - name: Run cargo build
-        run: |
-          cd initialize_ssh && cargo build --verbose
+        run: cargo build --verbose

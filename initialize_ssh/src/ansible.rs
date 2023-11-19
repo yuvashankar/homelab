@@ -6,6 +6,7 @@ use std::{
     path::{Path, PathBuf},
     process::Command,
 };
+use tempfile::NamedTempFile;
 
 #[cfg(not(test))]
 pub const DEFAULT_SSH_VAR_YAML_FILE: &str = "/workspaces/homelab/ansible/vars/ssh_vars.yaml";
@@ -98,7 +99,6 @@ impl fmt::Display for AnsibleVaultCommand {
 }
 
 pub fn vault_ssh_vars_file(
-    ansible_vault_command: AnsibleVaultCommand,
     var_file_path: &Path,
     vault_pass_file: &Path,
 ) -> Result<(), std::io::Error> {
@@ -106,7 +106,10 @@ pub fn vault_ssh_vars_file(
 
     let vault_args = vec!["--vault-pass-file", vault_pass_file.to_str().unwrap()];
 
-    let ansible_command = ansible_vault_command.to_string().trim().to_lowercase();
+    let ansible_command = AnsibleVaultCommand::Encrypt
+        .to_string()
+        .trim()
+        .to_lowercase();
 
     Command::new("ansible-vault")
         .arg(ansible_command)
@@ -115,6 +118,33 @@ pub fn vault_ssh_vars_file(
         .output()?;
 
     Ok(())
+}
+
+pub fn decrypt_ssh_vars_file(
+    var_file_path: &Path,
+    vault_pass_file: &Path,
+) -> Result<NamedTempFile, std::io::Error> {
+    let temp_file_name =
+        NamedTempFile::new().expect("Should be able to have access to the temp folder");
+    let vault_pass_path = PathBuf::from(vault_pass_file);
+    let ansible_command = AnsibleVaultCommand::Decrypt
+        .to_string()
+        .trim()
+        .to_lowercase();
+    let vault_cmd_args = vec![
+        "--vault-pass-file",
+        vault_pass_path.as_path().to_str().unwrap(),
+        "--output",
+        temp_file_name.path().to_str().unwrap(),
+    ];
+
+    Command::new("ansible-vault")
+        .arg(ansible_command)
+        .arg(var_file_path)
+        .args(vault_cmd_args)
+        .output()?;
+
+    Ok(temp_file_name)
 }
 
 #[cfg(test)]
@@ -204,11 +234,7 @@ mod tests {
         writeln!(password_file, "{}", password)?;
 
         // Encrypt file
-        let _out = vault_ssh_vars_file(
-            AnsibleVaultCommand::Encrypt,
-            temp_contents_file.path(),
-            password_file.path(),
-        );
+        let _out = vault_ssh_vars_file(temp_contents_file.path(), password_file.path());
 
         let post_encrypt_file_contents = fs::read_to_string(temp_contents_file.path())?;
 
@@ -229,20 +255,12 @@ mod tests {
         writeln!(password_file, "{}", password)?;
 
         // Encrypt file
-        let _out = vault_ssh_vars_file(
-            AnsibleVaultCommand::Encrypt,
-            temp_contents_file.path(),
-            password_file.path(),
-        );
+        let _out = vault_ssh_vars_file(temp_contents_file.path(), password_file.path());
 
         // Encrypt file
-        let _out = vault_ssh_vars_file(
-            AnsibleVaultCommand::Decrypt,
-            temp_contents_file.path(),
-            password_file.path(),
-        );
+        let temp_file_out = decrypt_ssh_vars_file(temp_contents_file.path(), password_file.path())?;
 
-        let post_encrypt_file_contents = fs::read_to_string(temp_contents_file.path())?;
+        let post_encrypt_file_contents = fs::read_to_string(temp_file_out.path())?;
 
         let filtered_file_contents = post_encrypt_file_contents.lines().next().unwrap();
 

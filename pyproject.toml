@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "homelab"
+version = "0.1.0"
+description = "An automation tool to deploy homelabs against"
+authors = ["Vinay Yuvashankar <vinay.yuvashankar@gmail.com>"]
+license = "GPL-3.0-or-later"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+ansible = "^8.5.0"
+molecule = "^6.0.2"
+requests = "^2.31.0"
+molecule-vagrant = "^2.0.0"
+ansible-lint = { version = "^6.21", markers = "platform_system != 'Windows'" }
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
