@@ -53,27 +53,13 @@ fn main() -> Result<(), std::process::ExitCode> {
             error!("Cannot decrypt ansible vault file: {}", e);
             std::process::ExitCode::FAILURE
         })?;
-        // Don't error out until we have re-vaulted the vars file
-        let store_ssh_keys_output = ssh_key::store_ssh_key(
-            // user_input.destination_path.as_path(),
-            vars_temp_file.path(),
-            user_input.filename.as_path(),
-        )
-        .map_err(|e| {
-            error!("Cannot store ssh keys! {}", e);
-            std::process::ExitCode::FAILURE
-        });
 
-        match store_ssh_keys_output {
-            Ok(_ok) => {
-                info!("Successfully decrypted and stored ssh keys");
-                Ok(())
-            }
-            Err(e) => {
-                error!("Could not decrpt ssh_vars.yaml:");
-                Err(e)
-            }
-        }?
+        ssh_key::store_ssh_key(vars_temp_file.path(), user_input.filename.as_path()).map_err(
+            |e| {
+                error!("Cannot store ssh keys! {}", e);
+                std::process::ExitCode::FAILURE
+            },
+        )?;
     } else {
         ssh_key::create_ssh_key(&user_input.filename, user_input.comment.as_str()).map_err(
             |e| {
@@ -91,15 +77,12 @@ fn main() -> Result<(), std::process::ExitCode> {
             std::process::ExitCode::FAILURE
         })?;
 
-        ansible::vault_ssh_vars_file(
-            // ansible::AnsibleVaultCommand::Encrypt,
-            &user_input.destination_path,
-            &vault_pass_file,
-        )
-        .map_err(|e| {
-            error!("Cannot run ansible-vault command: {:?}", e);
-            std::process::ExitCode::FAILURE
-        })?;
+        ansible::vault_ssh_vars_file(&user_input.destination_path, &vault_pass_file).map_err(
+            |e| {
+                error!("Cannot run ansible-vault command: {:?}", e);
+                std::process::ExitCode::FAILURE
+            },
+        )?;
     }
     Ok(())
 }
