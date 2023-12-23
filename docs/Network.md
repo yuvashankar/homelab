@@ -2,12 +2,12 @@
 The `yuvvashankar.net` homelab network comprises 4 main components
 
 0. An internet modem
-1. a pfSense router
+1. An OPNSense router
 2.  a Unifi switch and AP
 3.  A Synology NAS
 4.  An 8-core hypervisor
 
-This repository contains a [base-pfSense-backup](../config/pfSense/base-pfsense-config.xml) which will organize the network in the following manner
+This repository contains a [base_config](../config/opnsense/conf/base_config.xml) which will organize the network in the following manner.
 
 ```mermaid
 ---
@@ -93,8 +93,8 @@ The `Guest` network is isolated from communicating with internal RFC1918 IPs. It
 An unfortunate necissity of using Unifi hardware is the necissity to have a Unifi Controller somewhere on the network. For nothing but convenience reasons, I've chosen to use the Synology NAS's docker utility to run the controller. 
 
 # Important Endpoints
-| Endpoint          | Description     |
-| ----------------- | --------------- |
-| 192.168.2.3:5000  | NAS Endpoint    |
-| 192.168.2.3:8080  | Unifi Endpoint  |
+| Endpoint         | Description    |
+| ---------------- | -------------- |
+| 192.168.2.3:5000 | NAS Endpoint   |
+| 192.168.2.3:8080 | Unifi Endpoint |
 
