@@ -39,4 +39,6 @@
       ansible.builtin.include_role:
         name: configure_ssh
         tasks_from: 00-main.yml
+      vars:
+        github_user: "yuvashankar"
         

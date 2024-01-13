@@ -1,19 +1,19 @@
 ---
-- name: Install SSH Packages
-  ansible.builtin.package:
-    use: "{{ package_type | default('auto') }}"
-    name: 
-      - openssh-server
-      - fail2ban
-    state: latest
-    update_cache: true
-    cache_valid_time: 3600
+- name: "Ensure we have a sudo group"
+  group:
+    name: "sudo"
+    state: present
 
-- name: Harden sshd
-  lineinfile:
-    dest: "/etc/ssh/sshd_config"
-    regexp: '^#?\s*{{ item.key }}.*'
-    value: "{{ item.key }} {{ item.value }}"
-    validate: "sshd -t -f %s"
-  loop: "{{ configure_ssh_sshd_config | dict2items }}"
-  notify: Reload SSHd
+- name: "Add {{ github_user }} username"
+  become: true
+  ansible.builtin.user:
+    name: "{{ github_user }}"
+    group: "sudo"
+    comment: "Ansible Automation User"
+
+- name: "Set Authorized Keys from Github"
+
+  ansible.posix.authorized_key:
+    user: "{{ github_user }}"
+    state: present
+    key: http://github.com/{{ github_user }}.keys

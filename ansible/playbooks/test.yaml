@@ -1,2 +1,7 @@
 ---
-- name: "Run A Test Playbook"
+- hosts: all
+  vars_files: ../vars/main.yml
+  become: true
+  roles:
+  - geerlingguy.security
+  - configure_ssh

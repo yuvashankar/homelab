@@ -15,5 +15,5 @@ $ initialize_ssh
 To run ansible playbook
 ```bash
 cd ansible/
-ANSIBLE_CONFIG=$(pwd)/ansible.cfg ansible-playbook -i -k inventory/default_pfSense playbooks/test.yaml
+ANSIBLE_CONFIG=$(pwd)/ansible.cfg ansible-playbook -i inventory/hosts.ini playbooks/test.yaml -K # No getting around the fact that the first time we have to supply the sudo password
 ```

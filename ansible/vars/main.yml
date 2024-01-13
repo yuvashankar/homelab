@@ -1,0 +1,7 @@
+---
+github_user: "yuvashankar"
+automation_user: "yuvashankar"
+security_ssh_allowed_groups: ["sudo"]
+security_sudoers_passwordless: ["{{ automation_user }}"]
+security_autoupdate_mail_to: "vinay@yuvashankar.net"
+security_autoupdate_mail_on_error: false
