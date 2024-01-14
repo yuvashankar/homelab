@@ -1,0 +1,4 @@
+---
+# tasks file for mullvad
+- ansible.builtin.include_tasks: 00-get-facts.yml
+- ansible.builtin.include_tasks: 01-install-mullvad.yml
