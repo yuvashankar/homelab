@@ -8,5 +8,5 @@ platforms:
     image: python:bookworm
     privileged: true
     volumes:
-      - /sys/fs/cgroup:/sys/fs/cgroup:rw        
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
     cgroupns_mode: host
