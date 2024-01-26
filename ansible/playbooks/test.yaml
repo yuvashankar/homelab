@@ -1,9 +1,16 @@
 ---
-- name: Configure Media Server
+- name: Secure Servers
   hosts: all
-  vars_files: ../vars/main.yml
+  vars_files: 
+  - ../vars/main.yml
   become: true
   roles:
+  - configure_networking
   - geerlingguy.security
-  - configure_ssh
-  - mullvad
+  - general_config
+
+# - name: Configure Media Server
+#   hosts: media_server
+#   vars_files: ../vars/vpn.yml
+#   roles:
+#   - mullvad

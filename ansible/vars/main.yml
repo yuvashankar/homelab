@@ -1,7 +1,37 @@
 ---
+# General
 github_user: "yuvashankar"
 automation_user: "yuvashankar"
+
+# geerlingguy.security
 security_ssh_allowed_groups: ["sudo"]
 security_sudoers_passwordless: ["{{ automation_user }}"]
 security_autoupdate_mail_to: "vinay@yuvashankar.net"
 security_autoupdate_mail_on_error: false
+
+# Networking
+wifi_network_block: "192.168.4.0/24"
+network_interface:
+  eth: "eno1"
+  static_address: "192.168.2.2"
+  netmask: "255.255.255.0"
+  network: "192.168.2.0"
+  broadcast: "192.168.2.255"
+  gateway: "192.168.2.1"
+
+# File Share
+samba_host: "192.168.2.3"
+folders_to_mount:
+  - docker
+  - TV_Shows
+  - Movies
+  - Downloads
+samba_username: "yuvashankar"
+samba_password: !vault |
+  $ANSIBLE_VAULT;1.1;AES256
+  31363437303635646430303630666666326238633038643437346533626638313861616661623366
+  3361363035663733363934323530666633656335653438650a353130646537323465313230633465
+  62353061666234613938373564646334643833396235613464386334336239303933393261623261
+  3563373930396464620a646363313539346637633137613631633037643930393866376563303233
+  34613966626639653366626161663831376330326635333833303963313236323762346164373937
+  3435373539386538386264613532393461396264613331646561

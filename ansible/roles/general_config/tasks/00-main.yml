@@ -12,8 +12,13 @@
     comment: "Ansible Automation User"
 
 - name: "Set Authorized Keys from Github"
-
   ansible.posix.authorized_key:
     user: "{{ github_user }}"
     state: present
     key: http://github.com/{{ github_user }}.keys
+
+- name: Add generally necessary packages
+  ansible.builtin.package:
+    state: latest
+    name:
+      - curl

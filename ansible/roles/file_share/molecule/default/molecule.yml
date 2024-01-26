@@ -1,0 +1,12 @@
+---
+dependency:
+  name: galaxy
+  options:
+    requirements-file: requirements.yml
+platforms:
+  - name: molecule-debian
+    image: python:bookworm
+    privileged: true
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+    cgroupns_mode: host

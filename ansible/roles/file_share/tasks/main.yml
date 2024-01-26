@@ -1,0 +1,32 @@
+---
+- name: "Install Packages for Samba"
+  ansible.builtin.package:
+    state: latest
+    name:
+      - psmisc
+      - cifs-utils
+
+- name: "Ensure Home Folder Exists"
+  ansible.builtin.file:
+    path: /home/{{ automation_user }}
+    state: directory
+
+- name: "Create Mount Directory"
+  with_items: "{{ folders_to_mount }}"
+  ansible.builtin.file:
+    path: /mnt/{{ item }}
+    state: directory
+
+- name: "Add SambaShare Mounts on Boot"
+  with_items: "{{ folders_to_mount }}"
+  ansible.builtin.lineinfile:
+    path: "/etc/fstab"
+    line: "//{{ samba_host }}/{{ item }}\t/mnt/{{ item }}\tcifs\tcredentials=/home/{{ automation_user }}/.credentials"
+
+- name: "Write Credentials File"
+  ansible.builtin.template:
+    src: files/credentials.j2
+    dest: /home/{{ automation_user }}/.credentials
+    owner: "{{ automation_user }}"
+    group: "sudo"
+    mode: u=rw,g=r,o=r

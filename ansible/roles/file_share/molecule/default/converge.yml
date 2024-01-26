@@ -18,6 +18,7 @@
   become_method: su
   become_user: root
   gather_facts: false
+  vars_files: "../../../../vars/main.yml"
   pre_tasks:
     - name: Ensure auth.log file is present.
       ansible.builtin.copy:
@@ -36,9 +37,13 @@
       ansible.builtin.set_fact:
         testing: true
     - name: Include Role
-      ansible.builtin.include_role:
-        name: configure_ssh
-        tasks_from: 00-main.yml
       vars:
-        github_user: "yuvashankar"
+        automation_user: "yuvashankar"
+        samba_username: "yuvashankar"
+        samba_password: "1234"
+      ansible.builtin.include_role:
+        name: file_share
+        tasks_from: main.yml
+      
+
         

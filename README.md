@@ -17,3 +17,18 @@ To run ansible playbook
 cd ansible/
 ANSIBLE_CONFIG=$(pwd)/ansible.cfg ansible-playbook -i inventory/hosts.ini playbooks/test.yaml -K # No getting around the fact that the first time we have to supply the sudo password
 ```
+
+# Role Commands
+
+```bash
+# Initialize a role
+ansible-galaxy init role-name
+
+# Initialize a molecule role
+molecule init scenario
+```
+
+# Encrypt a string with ansible
+```bash
+ ansible-vault encrypt_string --vault-password-file ~/.vault_pass.txt "<string_to_encrypt>" --name "<name_of_variable_to_set>"
+```
