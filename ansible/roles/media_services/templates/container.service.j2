@@ -1,0 +1,22 @@
+# {{ ansible_managed }}
+
+[Unit]
+Description=Start docker container {{ service.key }}
+Wants=network-online.target
+Before=default.target
+BindsTo=docker.service {{ service.value['x-systemd-requires'] | default([]) | join(' ') }}
+After=docker.service {{ service.value['x-systemd-requires'] | default([]) | join(' ') }}
+
+[Service]
+ExecStart=/usr/bin/docker start {{ service.key }} -a
+{% for cmd in service.value['x-systemd-start-post'] | default([]) %}
+ExecStartPost={{ cmd }}
+{% endfor %}
+Type=simple
+SyslogIdentifier={{ service.key }}
+Restart=on-failure
+RestartSec=10s
+TimeoutStopSec=10s
+
+[Install]
+WantedBy=default.target

@@ -1,2 +1,5 @@
 ---
 # handlers file for file_share
+- name: Reload Systemd Daemon
+  ansible.builtin.systemd_service:
+    daemon_reload: true

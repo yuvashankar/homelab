@@ -22,3 +22,10 @@
     state: latest
     name:
       - curl
+
+- name: "Create Mount Directory"
+  with_items: "{{ folders_to_mount }}"
+  ansible.builtin.file:
+    path: /mnt/{{ item }}
+    group: "docker"
+    state: directory

@@ -1,0 +1,9 @@
+---
+# tasks file for media_services
+- name: configure docker defaults
+  set_fact:
+    docker: "{{ docker_services | combine(docker_services, recursive=True, list_merge='append') }}"
+    cacheable: true
+  changed_when: true
+  notify: "Configure Docker"
+  tags: docker

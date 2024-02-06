@@ -1,6 +1,7 @@
 ---
 dependencies:
   - role: "general_config"
+  - role: "geerlingguy.docker"
 
 galaxy_info:
   role_name: file_share

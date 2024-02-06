@@ -1,5 +1,24 @@
 ---
-- name: "Install Packages for Samba"
+- name: Ensure Group "docker" Exists"
+  ansible.builtin.group:
+    name: "docker"
+    state: present
+  register: group_out
+
+- name: "Ensure User {{ automation_user }} Exists"
+  ansible.builtin.user:
+    user: "{{ automation_user }}"
+  register: user_out
+
+- name: Set Docker Group Id Fact
+  ansible.builtin.set_fact:
+    docker_group_id: "{{ group_out.gid }}"
+
+- name: "Set {{ automation_user }} User Id"
+  ansible.builtin.set_fact:
+    automation_user_id: "{{ user_out.uid }}"
+
+- name: "Install Packages For Samba"
   ansible.builtin.package:
     state: latest
     name:
@@ -11,17 +30,12 @@
     path: /home/{{ automation_user }}
     state: directory
 
-- name: "Create Mount Directory"
-  with_items: "{{ folders_to_mount }}"
-  ansible.builtin.file:
-    path: /mnt/{{ item }}
-    state: directory
-
 - name: "Add SambaShare Mounts on Boot"
   with_items: "{{ folders_to_mount }}"
+  notify: "Reload Systemd Daemon"
   ansible.builtin.lineinfile:
     path: "/etc/fstab"
-    line: "//{{ samba_host }}/{{ item }}\t/mnt/{{ item }}\tcifs\tcredentials=/home/{{ automation_user }}/.credentials"
+    line: "//{{ samba_host }}/{{ item }}\t/mnt/{{ item }}\tcifs\tcredentials=/home/{{ automation_user }}/.credentials,uid={{ automation_user_id }},gid={{ docker_group_id }}"
 
 - name: "Write Credentials File"
   ansible.builtin.template:

@@ -1,0 +1,79 @@
+---
+# Shamelessly copied from https://github.com/paulbovbel/ansible-personal, while hacking off some galaxy-brained items.
+- name: Include Docker Extras
+  set_fact:
+    docker: "{{ docker | combine(docker_extras, recursive=True, list_merge='append') }}"
+    cacheable: true
+  changed_when: true
+
+- name: Get Docker Group Id
+  ansible.builtin.group:
+    name: docker
+    state: present
+  register: docker_out
+
+- name: Set Docker Group Id Fact
+  ansible.builtin.set_fact:
+    docker_group_id: "{{ docker_out.gid }}"
+
+- name: "Write Docker Compose File"
+  become: true
+  ansible.builtin.copy:
+    content: "{{ docker | to_nice_yaml }}"
+    dest: /etc/docker/docker-compose.yaml
+
+- name: "Configure Containers"
+  become: true
+  ansible.builtin.shell: |
+    cd /etc/docker &&
+    docker compose pull && docker compose up --no-deps --no-start --remove-orphans --build
+  # no_log: true
+
+- name: "Prune Docker Images"
+  become: true
+  ansible.builtin.shell: |
+    docker image prune -af --filter="until=24h"
+
+- name: "Create System Directory"
+  become: true
+  ansible.builtin.file:
+    path: "{{ docker_systemd_dir }}"
+    state: directory
+
+- name: "Clean Up Broken Links"
+  command: /usr/bin/find -L /etc/systemd/system -type l -delete
+  become: true
+
+- name: "Install Container Services"
+  become: true
+  loop: "{{ docker.services | dict2items }}"
+  loop_control:
+    loop_var: service
+  ansible.builtin.template:
+    src: container.service.j2
+    dest: "{{ docker_systemd_dir }}/{{ service.key }}.service"
+  # no_log: true
+
+- name: "Enable Systemd Service"
+  become: True
+  loop: "{{ docker.services | dict2items }}"
+  loop_control:
+    loop_var: service
+  ansible.builtin.systemd_service:
+    name: "{{ docker_systemd_dir }}/{{ service.key }}.service"
+    enabled: true
+
+- name: "Reload Systemd Daemon"
+  become: true
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+
+- name: "Start Docker Systemd Services"
+  become: true
+  loop: "{{ docker.services | dict2items }}"
+  loop_control:
+    loop_var: service
+  ansible.builtin.systemd_service:
+    name: "{{ service.key }}.service"
+    enabled: true
+    state: started

@@ -21,12 +21,13 @@ network_interface:
 
 # File Share
 samba_host: "192.168.2.3"
+app_folder: "/mnt"
 folders_to_mount:
   - docker
   - TV_Shows
   - Movies
   - Downloads
-samba_username: "yuvashankar"
+samba_username: "sambauser"
 samba_password: !vault |
   $ANSIBLE_VAULT;1.1;AES256
   31363437303635646430303630666666326238633038643437346533626638313861616661623366
@@ -35,3 +36,36 @@ samba_password: !vault |
   3563373930396464620a646363313539346637633137613631633037643930393866376563303233
   34613966626639653366626161663831376330326635333833303963313236323762346164373937
   3435373539386538386264613532393461396264613331646561
+
+# Docker
+docker_install_compose: true
+docker_users:
+  - "{{ automation_user }}"
+docker_daemon_options:
+  log-opts:
+    max-size: "100m"
+
+## media_ervices
+# Useful folder enndpoints
+docker_folder: "{{ app_folder }}/docker"
+docker_systemd_dir: /etc/systemd/docker
+
+docker_extras: 
+docker_services:
+  services:
+    transmission:
+      image: lscr.io/linuxserver/transmission:latest
+      container_name: transmission
+      restart: unless-stopped
+      environment:
+        PUID: "{{ automation_user_id }}"
+        PGID: "{{ docker_group_id }}"
+        TZ: America/Montreal
+      volumes:
+        - "{{ docker_folder }}/Transmission/config:/config"
+        - "{{ docker_folder }}/Transmission/watch:/watch"
+        - "{{ app_folder }}/Downloads:/downloads"
+      ports:
+        - 9091:9091
+        - 51413:51413
+        - 51413:51413/udp
