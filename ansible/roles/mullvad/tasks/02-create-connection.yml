@@ -7,11 +7,15 @@
 
 - name: Set Region And City
   ansible.builtin.shell: mullvad relay set location {{ vpn_country }} {{ vpn_city }}
-# - name: Logout from mullvad
-#   ansible.builtin.shell: mullvad account logout
 
-# - name: Login into mullvad
-#   ansible.builtin.shell: mullvad account login {{ mullvad_account }}
+- name: Enable mullvad auto-connect
+  ansible.builtin.shell: mullvad auto-connect set on
 
-# # Have to add this
-#sudo ip route add 192.168.2.0/24 via 192.168.4.1 dev wlp4s0
+- name: Logout from mullvad
+  ansible.builtin.shell: mullvad account logout
+
+- name: Login Into Mullvad
+  ansible.builtin.shell: mullvad account login {{ mullvad_account }}
+
+- name: "Connect To VPN"
+  ansible.builtin.shell: mullvad connect
