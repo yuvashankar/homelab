@@ -1,14 +1,14 @@
 ---
 - name: "Ensure we have a sudo group"
-  group:
-    name: "sudo"
+  ansible.builtin.group:
+    name: "{{ automation_group }}"
     state: present
 
-- name: "Add {{ github_user }} username"
+- name: "Add username {{ github_user }} "
   become: true
   ansible.builtin.user:
     name: "{{ github_user }}"
-    group: "sudo"
+    group: "{{ automation_group }}"
     comment: "Ansible Automation User"
 
 - name: "Set Authorized Keys from Github"
@@ -19,7 +19,7 @@
 
 - name: Add generally necessary packages
   ansible.builtin.package:
-    state: latest
+    state: present
     name:
       - curl
 
@@ -29,3 +29,4 @@
     path: /mnt/{{ item }}
     group: "docker"
     state: directory
+    mode: u=rwx,g=rx,o=rx

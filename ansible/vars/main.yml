@@ -2,6 +2,7 @@
 # General
 github_user: "yuvashankar"
 automation_user: "yuvashankar"
+automation_group: "sudo"
 
 # geerlingguy.security
 security_ssh_allowed_groups: ["sudo"]
@@ -50,7 +51,7 @@ docker_daemon_options:
 docker_folder: "{{ app_folder }}/docker"
 docker_systemd_dir: /etc/systemd/docker
 
-docker_extras: 
+docker_extras:
 docker_services:
   services:
     transmission:
