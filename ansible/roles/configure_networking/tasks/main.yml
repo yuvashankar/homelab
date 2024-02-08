@@ -2,29 +2,32 @@
 - name: Get All Network Interfaces
   ansible.builtin.shell: "find /sys/class/net/ -type l -not -lname '*virtual*' -printf '%f\n'"
   register: all_network_interfaces
+  changed_when: all_network_interfaces.rc != 0
 
 - name: Filter For Secondary Ethernet Interfaces
   ansible.builtin.set_fact:
     ethernet_interfaces: "{{ all_network_interfaces.stdout_lines | reject('search', 'w') | reject('search', network_interface.eth) | list }}"
 
-- name: Assert that {{network_interface.eth }} interface exists
+- name: Assert that interface exists {{ network_interface.eth }}
   ansible.builtin.fail:
-    msg: "Tne {{network_interface.eth }} network interface does not exist, possible interfaces: {{all_network_interfaces.stdout_lines }}"
+    msg: "Tne {{ network_interface.eth }} network interface does not exist, possible interfaces: {{ all_network_interfaces.stdout_lines }}"
   when: not network_interface.eth in all_network_interfaces.stdout_lines
 
 - name: Create Primary Network Interface File For {{ network_interface.eth }}
   ansible.builtin.file:
     path: /etc/network/interfaces.d/{{ network_interface.eth }}
     state: touch
+    mode: u=rw,g=r,o=r
 
 - name: Create Secondary Network Interface Files
   with_items: "{{ ethernet_interfaces }}"
   ansible.builtin.file:
     path: /etc/network/interfaces.d/{{ item }}
     state: touch
+    mode: u=rw,g=r,o=r
 
 # The IP Route addition is necessary as it enables us to access the server via the wifi subnet.
-# Otherwise we will accidentally lock ourselves out of the server (on the network atleast) whenever
+# Otherwise we will accidentally lock ourselves out of the server (on wifi atleast) whenever
 # we connect via a VPN.
 - name: Create static route for {{ network_interface.eth }}
   notify: Restart Networking Service
@@ -38,7 +41,7 @@
         network {{ network_interface.network }}
         broadcast {{ network_interface.broadcast }}
         gateway {{ network_interface.gateway }}
-        post-up ip route add {{ wifi_network_block }} via {{network_interface.gateway}} dev {{ network_interface.eth }}
+        post-up ip route add {{ wifi_network_block }} via {{ network_interface.gateway }} dev {{ network_interface.eth }}
 
 - name: Add auto-hotplug for secondary interfaces
   with_items: "{{ ethernet_interfaces }}"

@@ -1,4 +1,3 @@
 ---
 # defaults file for configure_networking
-networking_service_name_debian: "networking"
-interfaces_folder: "/etc/network/interfaces.d"
+configure_networking_networking_service_name_debian: "networking"

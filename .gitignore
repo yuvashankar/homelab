@@ -163,4 +163,5 @@ cython_debug/
 vagrantboxes/
 ssh_vars.yaml
 
+# Ignore ansible-galaxy roles
 ansible/roles/geerlingguy*
