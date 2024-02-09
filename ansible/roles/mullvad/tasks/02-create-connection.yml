@@ -16,7 +16,7 @@
 
 - name: Enable mullvad auto-connect
   ansible.builtin.command: mullvad auto-connect set on
-  registe: mullvad_autoconnect_output
+  register: mullvad_autoconnect_output
   changed_when: mullvad_autoconnect_output.rc != 0
 
 - name: Logout from mullvad
