@@ -1,16 +1,16 @@
 ---
-- name: Secure Servers
-  hosts: all
-  vars_files: 
-  - ../vars/main.yml
-  become: true
-  roles:
-  - configure_networking
-  - geerlingguy.security
-  - geerlingguy.docker
-  - general_config
-  - file_share
-  - media_services
+# - name: Secure Servers
+#   hosts: all
+#   vars_files: 
+#   - ../vars/main.yml
+#   become: true
+#   roles:
+#   - configure_networking
+#   - geerlingguy.security
+#   - geerlingguy.docker
+#   - general_config
+#   - file_share
+#   - media_services
 
 - name: Configure Media Server
   hosts: media_server

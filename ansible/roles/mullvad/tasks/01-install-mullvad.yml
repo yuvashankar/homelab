@@ -37,7 +37,7 @@
 # We also cannot use molecule to test this because systemd doesn't exist on docker containers
 - name: Install mullvad-vpn
   ansible.builtin.package:
-    state: latest
+    state: present
     name:
       - systemd
       - mullvad-vpn
