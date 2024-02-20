@@ -5,7 +5,7 @@
     state: present
   register: group_out
 
-- name: "Ensure User {{ automation_user }} Exists"
+- name: "Ensure User Exists {{ automation_user }} "
   ansible.builtin.user:
     user: "{{ automation_user }}"
   register: user_out
@@ -14,21 +14,22 @@
   ansible.builtin.set_fact:
     docker_group_id: "{{ group_out.gid }}"
 
-- name: "Set {{ automation_user }} User Id"
+- name: "Set User Id Fact {{ automation_user }} "
   ansible.builtin.set_fact:
     automation_user_id: "{{ user_out.uid }}"
 
 - name: "Install Packages For Samba"
   ansible.builtin.package:
-    state: latest
+    state: present
     name:
       - psmisc
       - cifs-utils
 
-- name: "Ensure Home Folder Exists"
-  ansible.builtin.file:
-    path: /home/{{ automation_user }}
-    state: directory
+# Used for molecule, we can assume that the home folder exists.
+# - name: "Ensure Home Folder Exists"
+#   ansible.builtin.file:
+#     path: /home/{{ automation_user }}
+#     state: directory
 
 - name: "Add SambaShare Mounts on Boot"
   with_items: "{{ folders_to_mount }}"
