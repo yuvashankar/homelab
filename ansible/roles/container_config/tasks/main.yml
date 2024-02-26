@@ -1,0 +1,31 @@
+---
+# tasks file for container_config
+# - name: "Ansible | List all known variables and facts"
+#   debug:
+#     var: "Provisioning based on YOUR_KEY which is: {{ lookup('ansible.builtin.env', 'HOME') }}"
+
+- name: "Set AWS Folder facts"
+  ansible.builtin.set_fact:
+    aws_folder: "{{ lookup('ansible.builtin.env', 'HOME')}}/.aws"
+
+- name: "Create ~/.aws folder"
+  ansible.builtin.file:
+    path: "{{ aws_folder }}"
+    state: directory
+    mode: u=rwx,g=rwx,o=rx
+
+- name: "Write AWS Config File"
+  ansible.builtin.template:
+    src: files/config.j2
+    dest: "{{ aws_folder }}/config"
+    owner: "{{ local_automation_user }}"
+    group: "{{ local_automation_user }}"
+    mode: u=rw,g=r,o=r
+
+- name: "Write AWS credentials File"
+  ansible.builtin.template:
+    src: files/credentials.j2
+    dest: "{{ aws_folder }}/credentials"
+    owner: "{{ local_automation_user }}"
+    group: "{{ local_automation_user }}"
+    mode: u=rw,g=r,o=r

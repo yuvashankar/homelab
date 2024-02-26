@@ -45,7 +45,7 @@
 - name: "Clean Up Broken Links"
   ansible.builtin.command: /usr/bin/find -L /etc/systemd/system -type l -delete
   register: broken_link_output
-  changed_when: brocken_link_output.rc != 0
+  changed_when: broken_link_output.rc != 0
   become: true
 
 - name: "Install Container Services"

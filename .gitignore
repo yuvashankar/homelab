@@ -165,3 +165,6 @@ ssh_vars.yaml
 
 # Ignore ansible-galaxy roles
 ansible/roles/geerlingguy*
+
+# Ignore Terraform Folders
+.terraform/

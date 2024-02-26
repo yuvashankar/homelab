@@ -57,7 +57,7 @@ docker_services:
     transmission:
       image: lscr.io/linuxserver/transmission:latest
       container_name: transmission
-      restart: unless-stopped
+      # restart: unless-stopped
       environment:
         PUID: "{{ automation_user_id }}"
         PGID: "{{ docker_group_id }}"
@@ -70,3 +70,17 @@ docker_services:
         - 9091:9091
         - 51413:51413
         - 51413:51413/udp
+    #
+    sonarr:
+      image: lscr.io/linuxserver/sonarr:latest
+      container_name: sonarr
+      environment:
+        PUID: "{{ automation_user_id }}"
+        PGID: "{{ docker_group_id }}"
+        TZ: America/Montreal
+      volumes:
+        - "{{ docker_folder }}/Sonarr:/config"
+        - "{{ app_folder }}/TV_Shows:/tv"
+        - "{{ app_folder }}/Downloads:/downloads"
+      ports:
+        - 8989:8989
