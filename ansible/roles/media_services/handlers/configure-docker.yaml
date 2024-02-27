@@ -16,6 +16,22 @@
   ansible.builtin.set_fact:
     docker_group_id: "{{ docker_out.gid }}"
 
+- name: Create Docker Service Folder on NAS
+  loop: "{{ lookup('ansible.builtin.dict', docker.services) }}"
+  ansible.builtin.file:
+    path: "{{ docker_folder }}/{{ item.key | capitalize }}"
+    state: directory
+    mode: u=rwx,g=rx,o=rx
+
+- name: Create Docker Config Folder Locally (for some services local storage is necessary)
+  loop: "{{ lookup('ansible.builtin.dict', docker.services) }}"
+  ansible.builtin.file:
+    path: "/home/{{ automation_user }}/docker/{{ item.key | capitalize }}"
+    state: directory
+    owner: "{{ automation_user }}"
+    group: docker
+    mode: u=rwx,g=rx,o=rwx
+
 - name: "Write Docker Compose File"
   become: true
   ansible.builtin.copy:

@@ -1,9 +1,5 @@
 ---
 # tasks file for container_config
-# - name: "Ansible | List all known variables and facts"
-#   debug:
-#     var: "Provisioning based on YOUR_KEY which is: {{ lookup('ansible.builtin.env', 'HOME') }}"
-
 - name: "Set AWS Folder facts"
   ansible.builtin.set_fact:
     aws_folder: "{{ lookup('ansible.builtin.env', 'HOME')}}/.aws"

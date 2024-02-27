@@ -1,5 +1,5 @@
 ---
-- name: Secure Servers
+- name: Configure Media Server
   hosts: media_server
   vars_files: 
   - ../vars/main.yml
@@ -12,7 +12,7 @@
   - file_share
   - media_services
 
-- name: Configure Media Server
+- name: Configure VPN
   hosts: media_server
   vars_files: ../vars/vpn.yml 
   roles:

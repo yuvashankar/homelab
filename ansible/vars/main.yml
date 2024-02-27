@@ -57,7 +57,6 @@ docker_services:
     transmission:
       image: lscr.io/linuxserver/transmission:latest
       container_name: transmission
-      # restart: unless-stopped
       environment:
         PUID: "{{ automation_user_id }}"
         PGID: "{{ docker_group_id }}"
@@ -84,3 +83,32 @@ docker_services:
         - "{{ app_folder }}/Downloads:/downloads"
       ports:
         - 8989:8989
+    #
+    jackett:
+      image: lscr.io/linuxserver/jackett:latest
+      container_name: jackett
+      environment:
+        PUID: "{{ automation_user_id }}"
+        PGID: "{{ docker_group_id }}"
+        TZ: America/Montreal
+      volumes:
+        - "{{ docker_folder }}/Jackett:/config"
+        - "{{ app_folder }}/Downloads:/watch:/downloads"
+      ports:
+        - 9117:9117
+    #
+    radarr:
+      image: lscr.io/linuxserver/radarr:latest
+      container_name: radarr
+      environment:
+        PUID: "{{ automation_user_id }}"
+        PGID: "{{ docker_group_id }}"
+        TZ: America/Montreal
+      volumes:
+        # This is different: https://github.com/Radarr/Radarr/issues/7269
+        # For nonsense reasons, Radarr doesn't support remotely mounted dtatabses, even though Sonarr does.
+        - "/home/{{ automation_user }}/docker/Radarr:/config"
+        - "{{ app_folder }}/Movies:/movies"
+        - "{{ app_folder }}/Downloads/:/downloads"
+      ports:
+        - 7878:7878
