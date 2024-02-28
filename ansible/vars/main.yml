@@ -84,18 +84,17 @@ docker_services:
       ports:
         - 8989:8989
     #
-    jackett:
-      image: lscr.io/linuxserver/jackett:latest
-      container_name: jackett
+    prowlarr:
+      image: lscr.io/linuxserver/prowlarr:latest
+      container_name: prowlarr
       environment:
         PUID: "{{ automation_user_id }}"
         PGID: "{{ docker_group_id }}"
         TZ: America/Montreal
       volumes:
-        - "{{ docker_folder }}/Jackett:/config"
-        - "{{ app_folder }}/Downloads:/watch:/downloads"
+        - "/home/{{ automation_user }}/docker/Prowlarr:/config"
       ports:
-        - 9117:9117
+        - 9696:9696
     #
     radarr:
       image: lscr.io/linuxserver/radarr:latest
@@ -112,3 +111,17 @@ docker_services:
         - "{{ app_folder }}/Downloads/:/downloads"
       ports:
         - 7878:7878
+    #
+    bazarr:
+      image: lscr.io/linuxserver/bazarr:latest
+      container_name: bazarr
+      environment:
+        PUID: "{{ automation_user_id }}"
+        PGID: "{{ docker_group_id }}"
+        TZ: America/Montreal
+      volumes:
+        - "/home/{{ automation_user }}/docker/Bazarr:/config"
+        - "{{ app_folder }}/TV_Shows:/tv"
+        - "{{ app_folder }}/Movies:/movies"
+      ports:
+        - 6767:6767
