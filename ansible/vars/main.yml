@@ -28,6 +28,7 @@ folders_to_mount:
   - TV_Shows
   - Movies
   - Downloads
+  - Music
 samba_username: "sambauser"
 samba_password: !vault |
   $ANSIBLE_VAULT;1.1;AES256
@@ -125,3 +126,49 @@ docker_services:
         - "{{ app_folder }}/Movies:/movies"
       ports:
         - 6767:6767
+    #
+    lidarr:
+      image: lscr.io/linuxserver/lidarr:latest
+      container_name: lidarr
+      environment:
+        PUID: "{{ automation_user_id }}"
+        PGID: "{{ docker_group_id }}"
+        TZ: America/Montreal
+      volumes:
+        - "/home/{{ automation_user }}/docker/Lidarr:/config"
+        - "{{ app_folder }}/Music:/music"
+        - "{{ app_folder }}/Downloads:/downloads"
+      ports:
+        - 8686:8686
+    #
+    tautulli:
+      image: lscr.io/linuxserver/tautulli:latest
+      container_name: tautulli
+      volumes:
+        - "/home/{{ automation_user }}/docker/Tautulli:/config"
+      environment:
+        PUID: "{{ automation_user_id }}"
+        PGID: "{{ docker_group_id }}"
+        TZ: America/Montreal
+      ports:
+        - 8181:8181
+    #
+    jellyfin:
+      image: jellyfin/jellyfin:latest
+      container_name: jellyfin
+      network_mode: "host"
+      environment:
+        PUID: "{{ automation_user_id }}"
+        PGID: "{{ docker_group_id }}"
+        TZ: America/Montreal
+      volumes:
+        - "/home/{{ automation_user }}/docker/Jellyfin:/config"
+        - "{{ docker_folder }}/Cache/:/cache"
+        - "{{ app_folder }}/Music:/music"
+        - "{{ app_folder }}/Movies:/movies"
+        - "{{ app_folder }}/TV_Shows:/tv"
+      ports:
+        - 8096:8096/tcp
+        - 8920:8920/tcp
+        - 1900:1900/udp
+        - 7359:7359/udp

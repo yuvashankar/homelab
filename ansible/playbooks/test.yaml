@@ -12,8 +12,8 @@
   - file_share
   - media_services
 
-- name: Configure VPN
-  hosts: media_server
-  vars_files: ../vars/vpn.yml 
-  roles:
-  - mullvad
+# - name: Configure VPN
+#   hosts: media_server
+#   vars_files: ../vars/vpn.yml 
+#   roles:
+#   - mullvad
