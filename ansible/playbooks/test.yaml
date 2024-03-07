@@ -1,16 +1,29 @@
 ---
 - name: Configure Media Server
-  hosts: media_server
+  hosts: storage_server
   vars_files: 
   - ../vars/main.yml
   become: true
-  roles:
-  - configure_networking
-  - geerlingguy.security
-  - geerlingguy.docker
-  - general_config
-  - file_share
-  - media_services
+  tasks:
+    - name: "Write Docker Compose File"
+      ansible.builtin.copy:
+        content: "{{ nas_docker_services | to_nice_yaml }}"
+        dest: /volume1/docker/docker-compose.yaml
+        mode: u=rw,g=r,o=r
+
+
+# - name: Configure Media Server
+#   hosts: media_server
+#   vars_files: 
+#   - ../vars/main.yml
+#   become: true
+#   roles:
+#   - configure_networking
+#   - geerlingguy.security
+#   - geerlingguy.docker
+#   - general_config
+#   - file_share
+#   - media_services
 
 # - name: Configure VPN
 #   hosts: media_server

@@ -6,6 +6,11 @@ The intended workflow is to use the devcontainer features on VSCode, but this ca
 $ echo <your password> | tee -a ~/.vault_pass.txt
 ```
 
+# Copying ssh ID
+```bash
+ssh-copy-id -i ~/.ssh/id_ed25519.pub username@host-ip-address
+```
+
 The vault password is important, losing this password will make it impossible to decrypt your ssh keys and bork any system that you run this against. Once the vault password is avaliable, run `initialize_ssh` to create and vault a new ssh key. 
 
 ```bash

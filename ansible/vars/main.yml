@@ -52,6 +52,18 @@ docker_daemon_options:
 docker_folder: "{{ app_folder }}/docker"
 docker_systemd_dir: /etc/systemd/docker
 
+nas_docker_services:
+  services:
+    prowlarr:
+      image: lscr.io/linuxserver/prowlarr:latest
+      container_name: prowlarr
+      environment:
+        TZ: America/Montreal
+      volumes:
+        - "/volume1/docker/Prowlarr:/config"
+      ports:
+        - 9696:9696
+
 docker_extras:
 docker_services:
   services:

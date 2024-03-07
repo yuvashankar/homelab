@@ -19,6 +19,11 @@
   register: mullvad_autoconnect_output
   changed_when: mullvad_autoconnect_output.rc != 0
 
+- name: Disable mullvad bridge mode (useful to not bungle up ports)
+  ansible.builtin.command: mullvad bridge set state off
+  register: mullvad_bridge_state_off
+  changed_when: mullvad_bridge_state_off != 0
+
 - name: Logout from mullvad
   ansible.builtin.command: mullvad account logout
   changed_when: true
