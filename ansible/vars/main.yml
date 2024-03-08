@@ -52,17 +52,69 @@ docker_daemon_options:
 docker_folder: "{{ app_folder }}/docker"
 docker_systemd_dir: /etc/systemd/docker
 
+nas_home_directory: "/volume1"
 nas_docker_services:
   services:
-    prowlarr:
-      image: lscr.io/linuxserver/prowlarr:latest
-      container_name: prowlarr
+    bazarr:
+      image: lscr.io/linuxserver/bazarr:latest
+      container_name: bazarr
+      restart: unless-stopped
       environment:
         TZ: America/Montreal
       volumes:
-        - "/volume1/docker/Prowlarr:/config"
+        - "{{ nas_home_directory }}/docker/Bazarr:/config"
+        - "{{ nas_home_directory }}/TV_Shows:/tv"
+        - "{{ nas_home_directory}}/Movies:/movies"
+      ports:
+        - 6767:6767
+    prowlarr:
+      image: lscr.io/linuxserver/prowlarr:latest
+      container_name: prowlarr
+      restart: unless-stopped
+      environment:
+        TZ: America/Montreal
+      volumes:
+        - "{{ nas_home_directory }}/docker/Prowlarr:/config"
       ports:
         - 9696:9696
+    sonarr:
+      image: lscr.io/linuxserver/sonarr:latest
+      container_name: sonarr
+      restart: unless-stopped
+      environment:
+        TZ: America/Montreal
+      volumes:
+        - "{{ nas_home_directory }}/docker/Sonarr:/config"
+        - "{{ nas_home_directory }}/TV_Shows:/tv"
+        - "{{ nas_home_directory }}/Downloads:/downloads"
+      ports:
+        - 8989:8989
+    radarr:
+      image: lscr.io/linuxserver/radarr:latest
+      container_name: radarr
+      restart: unless-stopped
+      environment:
+        TZ: America/Montreal
+      volumes:
+        # For nonsense reasons, Radarr doesn't support remotely mounted dtatabses, even though Sonarr does.
+        # For future reference: https://github.com/Radarr/Radarr/issues/7269
+        - "{{ nas_home_directory }}/docker/Radarr:/config"
+        - "{{ nas_home_directory }}/Movies:/movies"
+        - "{{ nas_home_directory }}/Downloads/:/downloads"
+      ports:
+        - 7878:7878
+    lidarr:
+      image: lscr.io/linuxserver/lidarr:latest
+      container_name: lidarr
+      restart: unless-stopped
+      environment:
+        TZ: America/Montreal
+      volumes:
+        - "{{ nas_home_directory }}/docker/Lidarr:/config"
+        - "{{ nas_home_directory }}/Music:/music"
+        - "{{ nas_home_directory }}/Downloads:/downloads"
+      ports:
+        - 8686:8686
 
 docker_extras:
 docker_services:
@@ -82,77 +134,6 @@ docker_services:
         - 9091:9091
         - 51413:51413
         - 51413:51413/udp
-    #
-    sonarr:
-      image: lscr.io/linuxserver/sonarr:latest
-      container_name: sonarr
-      environment:
-        PUID: "{{ automation_user_id }}"
-        PGID: "{{ docker_group_id }}"
-        TZ: America/Montreal
-      volumes:
-        - "{{ docker_folder }}/Sonarr:/config"
-        - "{{ app_folder }}/TV_Shows:/tv"
-        - "{{ app_folder }}/Downloads:/downloads"
-      ports:
-        - 8989:8989
-    #
-    prowlarr:
-      image: lscr.io/linuxserver/prowlarr:latest
-      container_name: prowlarr
-      environment:
-        PUID: "{{ automation_user_id }}"
-        PGID: "{{ docker_group_id }}"
-        TZ: America/Montreal
-      volumes:
-        - "/home/{{ automation_user }}/docker/Prowlarr:/config"
-      ports:
-        - 9696:9696
-    #
-    radarr:
-      image: lscr.io/linuxserver/radarr:latest
-      container_name: radarr
-      environment:
-        PUID: "{{ automation_user_id }}"
-        PGID: "{{ docker_group_id }}"
-        TZ: America/Montreal
-      volumes:
-        # This is different: https://github.com/Radarr/Radarr/issues/7269
-        # For nonsense reasons, Radarr doesn't support remotely mounted dtatabses, even though Sonarr does.
-        - "/home/{{ automation_user }}/docker/Radarr:/config"
-        - "{{ app_folder }}/Movies:/movies"
-        - "{{ app_folder }}/Downloads/:/downloads"
-      ports:
-        - 7878:7878
-    #
-    bazarr:
-      image: lscr.io/linuxserver/bazarr:latest
-      container_name: bazarr
-      environment:
-        PUID: "{{ automation_user_id }}"
-        PGID: "{{ docker_group_id }}"
-        TZ: America/Montreal
-      volumes:
-        - "/home/{{ automation_user }}/docker/Bazarr:/config"
-        - "{{ app_folder }}/TV_Shows:/tv"
-        - "{{ app_folder }}/Movies:/movies"
-      ports:
-        - 6767:6767
-    #
-    lidarr:
-      image: lscr.io/linuxserver/lidarr:latest
-      container_name: lidarr
-      environment:
-        PUID: "{{ automation_user_id }}"
-        PGID: "{{ docker_group_id }}"
-        TZ: America/Montreal
-      volumes:
-        - "/home/{{ automation_user }}/docker/Lidarr:/config"
-        - "{{ app_folder }}/Music:/music"
-        - "{{ app_folder }}/Downloads:/downloads"
-      ports:
-        - 8686:8686
-    #
     tautulli:
       image: lscr.io/linuxserver/tautulli:latest
       container_name: tautulli
