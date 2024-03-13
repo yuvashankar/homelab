@@ -1,5 +1,5 @@
 ---
-- name: Configure Media Server
+- name: Configure Storage Server
   hosts: storage_server
   vars_files: 
   - ../vars/main.yml
@@ -25,8 +25,8 @@
   - file_share
   - media_services
 
-# - name: Configure VPN
-#   hosts: media_server
-#   vars_files: ../vars/vpn.yml 
-#   roles:
-#   - mullvad
+- name: Configure VPN
+  hosts: media_server
+  vars_files: ../vars/vpn.yml 
+  roles:
+  - mullvad

@@ -47,12 +47,24 @@ docker_daemon_options:
   log-opts:
     max-size: "100m"
 
-## media_ervices
+# docker_compose
+nas_home_directory: "/volume1"
+docker_systemd_dir: /etc/systemd/docker
+docker_services_per_host:
+  storage_server:
+    docker_file_path: "{{ nas_home_directory }}/docker/docker-compose2.yaml" # Debug
+    docker_user: "{{ samba_username }}"
+    docker_group: "users"
+  media_server:
+    docker_file_path: "{{ docker_systemd_dir }}"
+    docker_user: "{{ automation_user }}"
+    docker_group: "docker"
+
+## media_services
 # Useful folder enndpoints
 docker_folder: "{{ app_folder }}/docker"
-docker_systemd_dir: /etc/systemd/docker
-
-nas_home_directory: "/volume1"
+nas_docker_user_id: 1029 ## Shitty hack because we can't determine user ids or group ids on Synology
+nas_docker_user_group: 100 ## Running docker containers on Synology is a pain.
 nas_docker_services:
   services:
     bazarr:
@@ -60,6 +72,8 @@ nas_docker_services:
       container_name: bazarr
       restart: unless-stopped
       environment:
+        PUID: "{{ nas_docker_user_id }}"
+        PGID: "{{ nas_docker_user_group }}"
         TZ: America/Montreal
       volumes:
         - "{{ nas_home_directory }}/docker/Bazarr:/config"
@@ -72,6 +86,8 @@ nas_docker_services:
       container_name: prowlarr
       restart: unless-stopped
       environment:
+        PUID: "{{ nas_docker_user_id }}"
+        PGID: "{{ nas_docker_user_group }}"
         TZ: America/Montreal
       volumes:
         - "{{ nas_home_directory }}/docker/Prowlarr:/config"
@@ -82,6 +98,8 @@ nas_docker_services:
       container_name: sonarr
       restart: unless-stopped
       environment:
+        PUID: "{{ nas_docker_user_id }}"
+        PGID: "{{ nas_docker_user_group }}"
         TZ: America/Montreal
       volumes:
         - "{{ nas_home_directory }}/docker/Sonarr:/config"
@@ -94,6 +112,8 @@ nas_docker_services:
       container_name: radarr
       restart: unless-stopped
       environment:
+        PUID: "{{ nas_docker_user_id }}"
+        PGID: "{{ nas_docker_user_group }}"
         TZ: America/Montreal
       volumes:
         # For nonsense reasons, Radarr doesn't support remotely mounted dtatabses, even though Sonarr does.
@@ -108,6 +128,8 @@ nas_docker_services:
       container_name: lidarr
       restart: unless-stopped
       environment:
+        PUID: "{{ nas_docker_user_id }}"
+        PGID: "{{ nas_docker_user_group }}"
         TZ: America/Montreal
       volumes:
         - "{{ nas_home_directory }}/docker/Lidarr:/config"
