@@ -1,14 +1,12 @@
 {
   "name": "homelab",
-  "description": "Development environment for the yuvashankar.net network",
+  // "description": "Development environment for the yuvashankar.net network",
   "image": "mcr.microsoft.com/devcontainers/base:1-jammy",
   "features": {
     "ghcr.io/devcontainers/features/rust:1": {},
     "ghcr.io/devcontainers/features/python:1": {},
-    "ghcr.io/devcontainers-contrib/features/black:2": {},
     "ghcr.io/devcontainers-contrib/features/ansible:2": {},
     "ghcr.io/devcontainers-contrib/features/yamllint:2": {},
-    "ghcr.io/devcontainers-contrib/features/poetry:2": {},
     "ghcr.io/devcontainers/features/sshd:1": {},
     "ghcr.io/devcontainers/features/terraform:1": {}
   },

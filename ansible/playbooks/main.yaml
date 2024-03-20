@@ -5,7 +5,7 @@
   - ../vars/main.yml
   become: true
   tasks:
-    - name: "Write Docker Compose File"
+    - name: "Write Docker Compose File For The Storage Service"
       ansible.builtin.copy:
         content: "{{ nas_docker_services | to_nice_yaml }}"
         dest: /volume1/docker/docker-compose.yaml
