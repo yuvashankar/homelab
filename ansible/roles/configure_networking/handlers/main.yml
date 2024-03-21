@@ -1,0 +1,6 @@
+---
+# handlers file for configure_networking
+- name: Restart Networking Service
+  ansible.builtin.systemd_service:
+    name: "{{ configure_networking_networking_service_name_debian }}"
+    state: restarted

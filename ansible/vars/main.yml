@@ -1,0 +1,184 @@
+---
+# General
+github_user: "yuvashankar" # The github username used to download ssh public keys
+automation_user: "yuvashankar" # The username that Ansible will be using to run its commands
+automation_group: "sudo" # The user group that the automation user will be on.
+
+# geerlingguy.security
+security_ssh_allowed_groups: ["sudo"]
+security_sudoers_passwordless: ["{{ automation_user }}"]
+security_autoupdate_mail_to: "vinay@yuvashankar.net"
+security_autoupdate_mail_on_error: false
+
+# Networking
+# The network block for the wifi subnet.
+# This is necessary for me because the Ansible control machine
+# is on the wifi network while the media_server is on the management network
+wifi_network_block: "192.168.4.0/24"
+network_interface:
+  eth: "eno1" # The network interface that the ethernet port is connected.
+  # The network configuration for the media server
+  static_address: "192.168.2.2"
+  netmask: "255.255.255.0"
+  network: "192.168.2.0"
+  broadcast: "192.168.2.255"
+  gateway: "192.168.2.1"
+
+# File Share
+samba_host: "192.168.2.3" # The IP address of the NAS or samba host
+app_folder: "/mnt" # The location on the media_server where the samba folders will be mounted on
+# Samba folders to mount. These folders must already exist on the NAS service.
+folders_to_mount:
+  - docker
+  - TV_Shows
+  - Movies
+  - Downloads
+  - Music
+# username to connect VIA samba share to the NAS
+samba_username: "sambauser"
+# Samba username's password
+samba_password: !vault |
+  $ANSIBLE_VAULT;1.1;AES256
+  31363437303635646430303630666666326238633038643437346533626638313861616661623366
+  3361363035663733363934323530666633656335653438650a353130646537323465313230633465
+  62353061666234613938373564646334643833396235613464386334336239303933393261623261
+  3563373930396464620a646363313539346637633137613631633037643930393866376563303233
+  34613966626639653366626161663831376330326635333833303963313236323762346164373937
+  3435373539386538386264613532393461396264613331646561
+
+# geerlingguy.docker
+docker_install_compose: true
+docker_users:
+  - "{{ automation_user }}"
+docker_daemon_options:
+  log-opts:
+    max-size: "100m"
+
+## media_services
+# Useful folder enndpoints
+docker_folder: "{{ app_folder }}/docker" # The location for the docker container configs
+nas_home_directory: "/volumen1" # The location for the shared folders on the NAS. s
+nas_docker_user_id: 1029 ## Shitty hack because we can't determine user ids or group ids on Synology
+nas_docker_user_group: 100 ## Running docker containers on Synology is a pain.
+# The Docker services that are to run off the VPN.
+nas_docker_services:
+  services:
+    bazarr:
+      image: lscr.io/linuxserver/bazarr:latest
+      container_name: bazarr
+      restart: unless-stopped
+      environment:
+        PUID: "{{ nas_docker_user_id }}"
+        PGID: "{{ nas_docker_user_group }}"
+        TZ: America/Montreal
+      volumes:
+        - "{{ nas_home_directory }}/docker/Bazarr:/config"
+        - "{{ nas_home_directory }}/TV_Shows:/tv"
+        - "{{ nas_home_directory}}/Movies:/movies"
+      ports:
+        - 6767:6767
+    prowlarr:
+      image: lscr.io/linuxserver/prowlarr:latest
+      container_name: prowlarr
+      restart: unless-stopped
+      environment:
+        PUID: "{{ nas_docker_user_id }}"
+        PGID: "{{ nas_docker_user_group }}"
+        TZ: America/Montreal
+      volumes:
+        - "{{ nas_home_directory }}/docker/Prowlarr:/config"
+      ports:
+        - 9696:9696
+    sonarr:
+      image: lscr.io/linuxserver/sonarr:latest
+      container_name: sonarr
+      restart: unless-stopped
+      environment:
+        PUID: "{{ nas_docker_user_id }}"
+        PGID: "{{ nas_docker_user_group }}"
+        TZ: America/Montreal
+      volumes:
+        - "{{ nas_home_directory }}/docker/Sonarr:/config"
+        - "{{ nas_home_directory }}/TV_Shows:/tv"
+        - "{{ nas_home_directory }}/Downloads:/downloads"
+      ports:
+        - 8989:8989
+    radarr:
+      image: lscr.io/linuxserver/radarr:latest
+      container_name: radarr
+      restart: unless-stopped
+      environment:
+        PUID: "{{ nas_docker_user_id }}"
+        PGID: "{{ nas_docker_user_group }}"
+        TZ: America/Montreal
+      volumes:
+        - "{{ nas_home_directory }}/docker/Radarr:/config"
+        - "{{ nas_home_directory }}/Movies:/movies"
+        - "{{ nas_home_directory }}/Downloads/:/downloads"
+      ports:
+        - 7878:7878
+    lidarr:
+      image: lscr.io/linuxserver/lidarr:latest
+      container_name: lidarr
+      restart: unless-stopped
+      environment:
+        PUID: "{{ nas_docker_user_id }}"
+        PGID: "{{ nas_docker_user_group }}"
+        TZ: America/Montreal
+      volumes:
+        - "{{ nas_home_directory }}/docker/Lidarr:/config"
+        - "{{ nas_home_directory }}/Music:/music"
+        - "{{ nas_home_directory }}/Downloads:/downloads"
+      ports:
+        - 8686:8686
+
+docker_extras:
+# The docker services to run on the media_server
+docker_services:
+  services:
+    transmission:
+      image: lscr.io/linuxserver/transmission:latest
+      container_name: transmission
+      environment:
+        PUID: "{{ automation_user_id }}"
+        PGID: "{{ docker_group_id }}"
+        TZ: America/Montreal
+      volumes:
+        - "{{ docker_folder }}/Transmission/config:/config"
+        - "{{ docker_folder }}/Transmission/watch:/watch"
+        - "{{ app_folder }}/Downloads:/downloads"
+      ports:
+        - 9091:9091
+        - 51413:51413
+        - 51413:51413/udp
+    tautulli:
+      image: lscr.io/linuxserver/tautulli:latest
+      container_name: tautulli
+      volumes:
+        - "/home/{{ automation_user }}/docker/Tautulli:/config"
+      environment:
+        PUID: "{{ automation_user_id }}"
+        PGID: "{{ docker_group_id }}"
+        TZ: America/Montreal
+      ports:
+        - 8181:8181
+    #
+    jellyfin:
+      image: jellyfin/jellyfin:latest
+      container_name: jellyfin
+      network_mode: "host"
+      environment:
+        PUID: "{{ automation_user_id }}"
+        PGID: "{{ docker_group_id }}"
+        TZ: America/Montreal
+      volumes:
+        - "/home/{{ automation_user }}/docker/Jellyfin:/config"
+        - "{{ docker_folder }}/Cache/:/cache"
+        - "{{ app_folder }}/Music:/music"
+        - "{{ app_folder }}/Movies:/movies"
+        - "{{ app_folder }}/TV_Shows:/tv"
+      ports:
+        - 8096:8096/tcp
+        - 8920:8920/tcp
+        - 1900:1900/udp
+        - 7359:7359/udp

@@ -1,0 +1,23 @@
+---
+- name: Run dpkg print architechure
+  ansible.builtin.command: dpkg --print-architecture
+  register: dpkg_output
+  changed_when: dpkg_output.rc != 0
+
+# Hacky nonsense because we can't use lsb_release with debian systems
+- name: Register deb_architecture variable
+  ansible.builtin.set_fact:
+    deb_architecture: "{{ dpkg_output.stdout }}"
+
+- name: Get os-release information
+  ansible.builtin.command: cat /etc/os-release
+  register: os_release_file
+  changed_when: os_release_file.rc != 0
+
+- name: Store VERSION_CODENAME line
+  ansible.builtin.set_fact:
+    version_codename_line: "{{ os_release_file.stdout_lines | select('search', 'VERSION_CODENAME=') | list }}"
+
+- name: Register version_codename variable
+  ansible.builtin.set_fact:
+    version_codename: "{{ version_codename_line | regex_search('(?<=VERSION_CODENAME=).[a-z]*') }}"

@@ -1,0 +1,8 @@
+---
+# tasks file for mullvad
+- name: "Include Get Facts Task List"
+  ansible.builtin.include_tasks: 00-get-facts.yml
+- name: "Include Install Mullvad Task List"
+  ansible.builtin.include_tasks: 01-install-mullvad.yml
+- name: "Include Create Connection Task List"
+  ansible.builtin.include_tasks: 02-create-connection.yml

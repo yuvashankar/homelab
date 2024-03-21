@@ -1,3 +1,4 @@
 ---
-collections:
-  - geerlingguy.security
+roles:
+  - name: geerlingguy.security
+  - name: geerlingguy.docker

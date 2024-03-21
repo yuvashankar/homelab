@@ -30,21 +30,21 @@ jobs:
 
       - name: Run yamllit
         run: "yamllint ."
+# Need ANSIBLE_VAULT_PASSWORD which would need to be stored on github :(
+# ansible-lint:
+#   name: Ansible lint
+#   runs-on: ubuntu-latest
+#   steps:
+#     - name: Checkout directory
+#       uses: actions/checkout@v4
 
-  ansible-lint:
-    name: Ansible lint
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout directory
-        uses: actions/checkout@v4
+#     - name: Setup Python3
+#       uses: actions/setup-python@v4
+#       with:
+#         python-version: "3.x"
 
-      - name: Setup Python3
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.x"
+#     - name: Install ansible-lint
+#       run: "pip3 install ansible-lint"
 
-      - name: Install ansible-lint
-        run: "pip3 install ansible-lint"
-
-      - name: Run ansible-lint
-        run: "ANSIBLE_CONFIG=./ansible.cfg ansible-lint playbooks/"
+#     - name: Run ansible-lint
+#       run: "ANSIBLE_CONFIG=./ansible.cfg ansible-lint playbooks/"

@@ -1,0 +1,3 @@
+---
+# defaults file for configure_networking
+configure_networking_networking_service_name_debian: "networking"

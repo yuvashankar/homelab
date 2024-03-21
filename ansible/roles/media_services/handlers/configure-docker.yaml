@@ -1,0 +1,100 @@
+---
+# Shamelessly copied from https://github.com/paulbovbel/ansible-personal, while hacking off some galaxy-brained items.
+- name: Include Docker Extras
+  ansible.builtin.set_fact:
+    docker: "{{ docker | combine(docker_extras, recursive=True, list_merge='append') }}"
+    cacheable: true
+  changed_when: true
+
+- name: Get Docker Group Id
+  ansible.builtin.group:
+    name: docker
+    state: present
+  register: docker_out
+
+- name: Set Docker Group Id Fact
+  ansible.builtin.set_fact:
+    docker_group_id: "{{ docker_out.gid }}"
+
+- name: Create Docker Service Folder on NAS
+  loop: "{{ lookup('ansible.builtin.dict', docker.services) }}"
+  ansible.builtin.file:
+    path: "{{ docker_folder }}/{{ item.key | capitalize }}"
+    state: directory
+    mode: u=rwx,g=rx,o=rx
+
+- name: Create Docker Config Folder Locally (for some services local storage is necessary)
+  loop: "{{ lookup('ansible.builtin.dict', docker.services) }}"
+  ansible.builtin.file:
+    path: "/home/{{ automation_user }}/docker/{{ item.key | capitalize }}"
+    state: directory
+    owner: "{{ automation_user }}"
+    group: docker
+    mode: u=rwx,g=rx,o=rwx
+
+- name: "Write Docker Compose File"
+  become: true
+  ansible.builtin.copy:
+    content: "{{ docker | to_nice_yaml }}"
+    dest: /etc/docker/docker-compose.yaml
+    mode: u=rw,g=r,o=r
+
+- name: "Configure Containers"
+  become: true
+  ansible.builtin.shell: |
+    cd /etc/docker &&
+    docker compose pull && docker compose up --no-deps --no-start --remove-orphans --build
+  changed_when: true
+
+- name: "Prune Docker Images"
+  become: true
+  changed_when: true
+  ansible.builtin.command: docker image prune -af --filter="until=24h"
+
+- name: "Create Docker Systemdd Directory"
+  become: true
+  ansible.builtin.file:
+    path: "{{ docker_systemd_dir }}"
+    state: directory
+    mode: u=rwx,g=rx,o=rx
+
+- name: "Clean Up Broken Links"
+  ansible.builtin.command: /usr/bin/find -L /etc/systemd/system -type l -delete
+  register: broken_link_output
+  changed_when: broken_link_output.rc != 0
+  become: true
+
+- name: "Install Container Services"
+  become: true
+  loop: "{{ docker.services | dict2items }}"
+  loop_control:
+    loop_var: service
+  ansible.builtin.template:
+    src: container.service.j2
+    dest: "{{ docker_systemd_dir }}/{{ service.key }}.service"
+    mode: u=rw,g=r,o=r
+  # no_log: true
+
+- name: "Enable Systemd Service"
+  become: True
+  loop: "{{ docker.services | dict2items }}"
+  loop_control:
+    loop_var: service
+  ansible.builtin.systemd_service:
+    name: "{{ docker_systemd_dir }}/{{ service.key }}.service"
+    enabled: true
+
+- name: "Reload Systemd Daemon"
+  become: true
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+
+- name: "Start Docker Systemd Services"
+  become: true
+  loop: "{{ docker.services | dict2items }}"
+  loop_control:
+    loop_var: service
+  ansible.builtin.systemd_service:
+    name: "{{ service.key }}.service"
+    enabled: true
+    state: started

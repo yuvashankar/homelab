@@ -1,0 +1,11 @@
+---
+# handlers file for media_services
+- name: "Restart Docker"
+  ansible.builtin.systemd_service:
+    name: docker
+    state: restarted
+    enabled: true
+  become: true
+
+- name: "Configure Docker"
+  ansible.builtin.include_tasks: handlers/configure-docker.yaml

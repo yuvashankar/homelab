@@ -1,0 +1,43 @@
+---
+- name: Check if Signing key exists
+  register: mullvad_keyring_file
+  ansible.builtin.stat:
+    path: /usr/share/keyrings/mullvad-keyring.asc
+
+# - name: Check if Apt Repository File exists
+#   register: mullvad_apt_repository_file
+#   ansible.builtin.stat:
+#     path: /etc/apt/sources.list.d/mullvad.list
+
+- name: Download Mullvad Signing Key
+  become: true
+  when: not mullvad_keyring_file.stat.exists
+  ansible.builtin.get_url:
+    url: https://repository.mullvad.net/deb/mullvad-keyring.asc
+    dest: /usr/share/keyrings/mullvad-keyring.asc
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Create Mullvad Apt Repository file
+  become: true
+  ansible.builtin.file:
+    path: /etc/apt/sources.list.d/mullvad.list
+    state: touch
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Add Mullvad to Apt Repository
+  ansible.builtin.lineinfile:
+    path: /etc/apt/sources.list.d/mullvad.list
+    line: deb [signed-by=/usr/share/keyrings/mullvad-keyring.asc arch={{ deb_architecture }}] https://repository.mullvad.net/deb/stable {{ version_codename }} main
+
+# The mullvad package requires systemd to successfully install
+# We also cannot use molecule to test this because systemd doesn't exist on docker containers
+- name: Install mullvad-vpn
+  ansible.builtin.package:
+    state: present
+    name:
+      - systemd
+      - mullvad-vpn

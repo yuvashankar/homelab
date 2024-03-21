@@ -1,11 +1,11 @@
 # Network Overview
 The `yuvvashankar.net` homelab network comprises 4 main components
 
-0. An internet modem
+0. An internet modem - Teksavvy SmartRG
 1. An OPNSense router
 2.  a Unifi switch and AP
 3.  A Synology NAS
-4.  An 8-core hypervisor
+4.  An 4-core Low powered machine
 
 This repository contains a [base_config](../config/opnsense/conf/base_config.xml) which will organize the network in the following manner.
 
@@ -93,8 +93,15 @@ The `Guest` network is isolated from communicating with internal RFC1918 IPs. It
 An unfortunate necissity of using Unifi hardware is the necissity to have a Unifi Controller somewhere on the network. For nothing but convenience reasons, I've chosen to use the Synology NAS's docker utility to run the controller. 
 
 # Important Endpoints
-| Endpoint         | Description    |
-| ---------------- | -------------- |
-| 192.168.2.3:5000 | NAS Endpoint   |
-| 192.168.2.3:8080 | Unifi Endpoint |
+| Endpoint                 | Description               |
+| ------------------------ | ------------------------- |
+| http://192.168.2.3:5000/ | NAS Endpoint              |
+| http://192.168.2.3:8080  | Unifi Endpoint            |
+| http://192.168.2.2:8989  | Shows (Sonarr)            |
+| http://192.168.2.2:7878  | Movies (Radarr)           |
+| http://192.168.2.2:9091  | Downloader (Transmission) |
+| http://192.168.2.2:9696  | Prowlarr (Indexer)        |
+| http://192.168.2.2:6767  | Bazarr (Subtitles)        |
+| http://192.168.2.2:8686  | Lidarr (Music)            |
+| http://192.168.2.2:8181  | Tautilli (Notifications)  |
 

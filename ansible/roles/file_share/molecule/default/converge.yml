@@ -1,0 +1,49 @@
+---
+- name: Fail if molecule group is missing
+  hosts: localhost
+  tasks:
+    - name: Print some info
+      ansible.builtin.debug:
+        msg: "{{ groups }}"
+
+    - name: Assert group existence
+      ansible.builtin.assert:
+        that: "'molecule' in groups"
+        fail_msg: |
+          molecule group was not found inside inventory groups: {{ groups }}
+
+- name: Converge
+  hosts: molecule
+  become: true
+  become_method: su
+  become_user: root
+  gather_facts: false
+  vars_files: "../../../../vars/main.yml"
+  pre_tasks:
+    - name: Ensure auth.log file is present.
+      ansible.builtin.copy:
+        dest: /var/log/auth.log
+        content: ""
+        force: false
+        mode: 0644
+    
+    - name: make /run/sshd folder
+      ansible.builtin.file:
+        path: /run/sshd
+        state: directory
+
+  tasks:
+    - name: Set testing flag
+      ansible.builtin.set_fact:
+        testing: true
+    - name: Include Role
+      vars:
+        automation_user: "yuvashankar"
+        samba_username: "yuvashankar"
+        samba_password: "1234"
+      ansible.builtin.include_role:
+        name: file_share
+        tasks_from: main.yml
+      
+
+        

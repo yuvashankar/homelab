@@ -1,0 +1,3 @@
+---
+- name: "Include general configs task list"
+  ansible.builtin.import_tasks: "00-main.yml"

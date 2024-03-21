@@ -1,0 +1,37 @@
+---
+- name: Update Mullvad relay
+  ansible.builtin.command: mullvad relay update
+  register: mullvad_relay_output
+  changed_when: mullvad_relay_output.rc != 0
+
+- name: Allow mullvad local traffic
+  ansible.builtin.command: mullvad lan set allow
+  register: mullvad_lan_set_output
+  changed_when: mullvad_lan_set_output.rc != 0
+
+- name: Set Region And City
+  ansible.builtin.command: mullvad relay set location {{ vpn_country }} {{ vpn_city }}
+  register: mullvad_relay_set_output
+  changed_when: mullvad_relay_set_output.rc != 0
+
+- name: Enable mullvad auto-connect
+  ansible.builtin.command: mullvad auto-connect set on
+  register: mullvad_autoconnect_output
+  changed_when: mullvad_autoconnect_output.rc != 0
+
+- name: Disable mullvad bridge mode (useful to not bungle up ports)
+  ansible.builtin.command: mullvad bridge set state off
+  register: mullvad_bridge_state_off
+  changed_when: mullvad_bridge_state_off != 0
+
+- name: Logout from mullvad
+  ansible.builtin.command: mullvad account logout
+  changed_when: true
+
+- name: Login Into Mullvad
+  ansible.builtin.command: mullvad account login {{ mullvad_account }}
+  changed_when: true
+
+- name: "Connect To VPN"
+  ansible.builtin.command: mullvad connect
+  changed_when: true
