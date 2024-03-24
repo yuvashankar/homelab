@@ -1,4 +1,4 @@
-use anyhow::{anyhow, bail, Result};
+use anyhow::{anyhow, Result};
 use log::info;
 use std::fs::{self};
 use std::io::Write;
@@ -58,27 +58,27 @@ pub fn store_ssh_key(var_file: &Path, ssh_priv_path: &Path) -> Result<(), std::i
 pub fn create_ssh_key(filename: &Path, comment: &str) -> Result<(), anyhow::Error> {
     //Check that the file does not already exist
     if filename.exists() {
-        bail!("SSH key already exists, exiting.");
-    }
-
-    let comment_arg = vec!["-C", comment];
-
-    if let Some(file_path) = filename.to_str() {
-        let file_arg = vec!["-f", file_path];
-
-        Command::new("ssh-keygen")
-            .args(["-t", "ed25519"])
-            .args(comment_arg)
-            .args(file_arg)
-            .arg("-q")
-            .args(["-N", ""])
-            .spawn()
-            .map(|mut c| c.wait().expect("ssh-keygen command wasn't running"))?;
+        info!("{:?} exists, skipping creating ssh keys", filename);
+        Ok(())
     } else {
-        return Err(anyhow!("Cannot convert filepath {:?} to string", filename));
-    }
+        let comment_arg = vec!["-C", comment];
 
-    Ok(())
+        if let Some(file_path) = filename.to_str() {
+            let file_arg = vec!["-f", file_path];
+
+            Command::new("ssh-keygen")
+                .args(["-t", "ed25519"])
+                .args(comment_arg)
+                .args(file_arg)
+                .arg("-q")
+                .args(["-N", ""])
+                .spawn()
+                .map(|mut c| c.wait().expect("ssh-keygen command wasn't running"))?;
+        } else {
+            return Err(anyhow!("Cannot convert filepath {:?} to string", filename));
+        }
+        Ok(())
+    }
 }
 
 #[cfg(test)]
@@ -89,17 +89,25 @@ mod tests {
     use tempfile::{NamedTempFile, TempDir};
 
     #[test]
-    fn test_ssh_keygen_does_not_overwrite_existing_file() {
+    fn test_ssh_keygen_does_not_overwrite_existing_file() -> Result<(), std::io::Error> {
         let mut some_file =
             NamedTempFile::new().expect("Should have been able to create a temp file");
 
-        let _write_output = writeln!(some_file, "nonsense");
+        let file_contents = "nonsense";
+
+        let _write_output = writeln!(some_file, "{}", &file_contents);
         let filename = PathBuf::from(some_file.path());
         let comment = String::new();
 
         let res = create_ssh_key(&filename, &comment);
 
-        assert!(res.is_err());
+        let raw_file_read = fs::read_to_string(filename)?;
+        let written_file_contents = raw_file_read.lines().next().unwrap();
+
+        assert_eq!(written_file_contents, String::from(file_contents));
+
+        assert!(res.is_ok());
+        Ok(())
     }
 
     #[test]
